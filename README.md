@@ -24,9 +24,13 @@ or
 yarn install
 ```
 
-### bundle dev mode
+### Run
 
 ```bash
-npm run dev
+npm start
 ```
+or 
 
+```bash
+yarn start
+```
