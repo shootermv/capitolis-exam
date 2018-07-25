@@ -21,6 +21,8 @@ import TableRow from '@material-ui/core/TableRow';
 
 // services
 import {getAllData} from '../../services'
+
+import Calc from './Calc'
 class Home extends PureComponent {
   static propTypes = {
     // react-router 4:
@@ -39,16 +41,25 @@ class Home extends PureComponent {
   state = {
     animated: true,
     viewEnters: false,
-    positions: []
+    positions: [],
+    currencies:[]
   };
 
   componentDidMount() {
-    getAllData().then((positions) => {
-       this.setState({positions});
-    })
+    this.fetchData();
+    setInterval(() => this.fetchData(), 10000); 
 
     this.enterAnimationTimer = setTimeout(this.setViewEnters, 500);
   }
+
+  fetchData = () => {
+    this.setState({positions: []});
+    getAllData().then((positions) => {
+      this.setState({positions}); 
+      this.setState({currencies:    Array.from(new Set( positions.map(({ccy}) => ccy) ))    })
+    })
+  }
+
 
   componentWillUnmount() {
     clearTimeout(this.enterAnimationTimer);
@@ -57,8 +68,8 @@ class Home extends PureComponent {
   render() {
     const { animated, viewEnters } = this.state;
  
-    const data = this.state.positions;
-
+    const { positions: data, currencies } = this.state;
+    
     return(
       <section
         id="home__container"
@@ -79,38 +90,49 @@ class Home extends PureComponent {
                   subtitle="View"
                 />
                 <CardText>
-                <Table >
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Financial Unit</TableCell>
-                    <TableCell numeric>Notional Value</TableCell>
-                    <TableCell numeric>Rate</TableCell>
-                    <TableCell>Currency</TableCell>
-                    <TableCell numeric>Calculated Value</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {data.map(n => {
-                    return (
-                      <TableRow key={n.keyid}>
-                        <TableCell component="th" scope="row">
-                          {n.name}
-                        </TableCell>
-                        <TableCell numeric>{n.notionalValue}</TableCell>
-                        <TableCell numeric>{n.rate}</TableCell>
-                        <TableCell numeric>{n.ccy}</TableCell>
-                        <TableCell numeric>{n.calculated}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                
+                  { data.length === 0 &&
+                    <div className="spinner">
+                      <div className="dot1"></div>
+                      <div className="dot2"></div>
+                    </div>
+                  }
+
+                  { data.length > 0 &&
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Financial Unit</TableCell>
+                          <TableCell numeric>Notional Value</TableCell>
+                          <TableCell numeric>Rate</TableCell>
+                          <TableCell>Currency</TableCell>
+                          <TableCell numeric>Calculated Value</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {data.map(n => {
+                          return (
+                            <TableRow key={n.keyid}>
+                              <TableCell component="th" scope="row">
+                                {n.name}
+                              </TableCell>
+                              <TableCell numeric>{n.notionalValue}</TableCell>
+                              <TableCell numeric>{n.rate}</TableCell>
+                              <TableCell numeric>{n.ccy}</TableCell>
+                              <TableCell numeric>{n.calculated}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                      }
                 </CardText>
                 <CardActions>
                   <FlatButton
                     label="Export To Csv"
                     onTouchTap={this.exportToCsv}
                   />
+                  <Calc currencies={currencies}/>
                 </CardActions>
               </Card>
             </div>

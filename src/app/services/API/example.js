@@ -55,7 +55,8 @@ export const getRates = (
 ) => {
   const method  = getMethod.method;
   const headers = jsonHeader;
-  const url     = `https://free.currencyconverterapi.com/api/v6/convert?q=USD_${ccy}&compact=y`;
+  const PROXY_URL = 'https://cors-anywhere.herokuapp.com/'
+  const url     = `${PROXY_URL}https://free.currencyconverterapi.com/api/v6/convert?q=USD_${ccy}&compact=y`;
   const options = {...defaultOptions};
   
   return axios.request({
