@@ -17,6 +17,7 @@ import {
 import MainRoutes           from '../../routes/MainRoutes';
 import { withRouter }       from 'react-router';
 
+
 class App extends Component {
   static propTypes = {
     // react-router 4:
@@ -32,6 +33,8 @@ class App extends Component {
     drawerOpened: false,
     drawerMenus:  appConfig.DRAWER.menus
   };
+  
+
 
   render() {
     const {

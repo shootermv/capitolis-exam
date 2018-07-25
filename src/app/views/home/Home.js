@@ -12,7 +12,15 @@ import {
   CardText
 }                         from 'material-ui/Card';
 import FlatButton         from 'material-ui/FlatButton';
+import { withStyles } from '@material-ui/core/styles';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 
+// services
+import {getPositions, getUnits, getRates} from '../../services'
 class Home extends PureComponent {
   static propTypes = {
     // react-router 4:
@@ -30,10 +38,27 @@ class Home extends PureComponent {
 
   state = {
     animated: true,
-    viewEnters: false
+    viewEnters: false,
+    units: [],
+    positions: [],
+    rates: []
   };
 
   componentDidMount() {
+    getPositions().then((positions) => {
+       return positions ;//this.setState({positions})
+    }).then((positions) => {
+       return getUnits().then(units => ({positions, units}))
+     // this.setState({units})
+    }).then((data) => {
+        const {positions, units} = data;
+        return getRates().then(rates => ({positions, units, rates}))
+    }).then((data) => {
+      console.log('RATES',data)
+      //this.setState({rates})
+    })
+  
+
     this.enterAnimationTimer = setTimeout(this.setViewEnters, 500);
   }
 
@@ -43,7 +68,19 @@ class Home extends PureComponent {
 
   render() {
     const { animated, viewEnters } = this.state;
-
+    let id = 0;
+    function createData(name, calories, fat, carbs, protein) {
+      id += 1;
+      return { id, name, calories, fat, carbs, protein };
+    }
+    
+    const data = [
+      createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
+      createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
+      createData('Eclair', 262, 16.0, 24, 6.0),
+      createData('Cupcake', 305, 3.7, 67, 4.3),
+      createData('Gingerbread', 356, 16.0, 49, 3.9),
+    ];
     return(
       <section
         id="home__container"
@@ -64,10 +101,32 @@ class Home extends PureComponent {
                   subtitle="View"
                 />
                 <CardText>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Donec mattis pretium massa. Aliquam erat volutpat. Nulla facilisi.
-                  Donec vulputate interdum sollicitudin. Nunc lacinia auctor quam sed pellentesque.
-                  Aliquam dui mauris, mattis quis lacus id, pellentesque lobortis odio.
+                <Table >
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Dessert (100g serving)</TableCell>
+                    <TableCell numeric>Calories</TableCell>
+                    <TableCell numeric>Fat (g)</TableCell>
+                    <TableCell numeric>Carbs (g)</TableCell>
+                    <TableCell numeric>Protein (g)</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {data.map(n => {
+                    return (
+                      <TableRow key={n.id}>
+                        <TableCell component="th" scope="row">
+                          {n.name}
+                        </TableCell>
+                        <TableCell numeric>{n.calories}</TableCell>
+                        <TableCell numeric>{n.fat}</TableCell>
+                        <TableCell numeric>{n.carbs}</TableCell>
+                        <TableCell numeric>{n.protein}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
                 </CardText>
                 <CardActions>
                   <FlatButton
