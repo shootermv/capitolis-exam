@@ -20,7 +20,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
 // services
-import {getPositions, getUnits, getRates} from '../../services'
+import {getAllData} from '../../services'
 class Home extends PureComponent {
   static propTypes = {
     // react-router 4:
@@ -39,25 +39,13 @@ class Home extends PureComponent {
   state = {
     animated: true,
     viewEnters: false,
-    units: [],
-    positions: [],
-    rates: []
+    positions: []
   };
 
   componentDidMount() {
-    getPositions().then((positions) => {
-       return positions ;//this.setState({positions})
-    }).then((positions) => {
-       return getUnits().then(units => ({positions, units}))
-     // this.setState({units})
-    }).then((data) => {
-        const {positions, units} = data;
-        return getRates().then(rates => ({positions, units, rates}))
-    }).then((data) => {
-      console.log('RATES',data)
-      //this.setState({rates})
+    getAllData().then((positions) => {
+       this.setState({positions});
     })
-  
 
     this.enterAnimationTimer = setTimeout(this.setViewEnters, 500);
   }
@@ -68,19 +56,9 @@ class Home extends PureComponent {
 
   render() {
     const { animated, viewEnters } = this.state;
-    let id = 0;
-    function createData(name, calories, fat, carbs, protein) {
-      id += 1;
-      return { id, name, calories, fat, carbs, protein };
-    }
-    
-    const data = [
-      createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-      createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-      createData('Eclair', 262, 16.0, 24, 6.0),
-      createData('Cupcake', 305, 3.7, 67, 4.3),
-      createData('Gingerbread', 356, 16.0, 49, 3.9),
-    ];
+ 
+    const data = this.state.positions;
+
     return(
       <section
         id="home__container"
@@ -104,24 +82,24 @@ class Home extends PureComponent {
                 <Table >
                 <TableHead>
                   <TableRow>
-                    <TableCell>Dessert (100g serving)</TableCell>
-                    <TableCell numeric>Calories</TableCell>
-                    <TableCell numeric>Fat (g)</TableCell>
-                    <TableCell numeric>Carbs (g)</TableCell>
-                    <TableCell numeric>Protein (g)</TableCell>
+                    <TableCell>Financial Unit</TableCell>
+                    <TableCell numeric>Notional Value</TableCell>
+                    <TableCell numeric>Rate</TableCell>
+                    <TableCell>Currency</TableCell>
+                    <TableCell numeric>Calculated Value</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.map(n => {
                     return (
-                      <TableRow key={n.id}>
+                      <TableRow key={n.keyid}>
                         <TableCell component="th" scope="row">
                           {n.name}
                         </TableCell>
-                        <TableCell numeric>{n.calories}</TableCell>
-                        <TableCell numeric>{n.fat}</TableCell>
-                        <TableCell numeric>{n.carbs}</TableCell>
-                        <TableCell numeric>{n.protein}</TableCell>
+                        <TableCell numeric>{n.notionalValue}</TableCell>
+                        <TableCell numeric>{n.rate}</TableCell>
+                        <TableCell numeric>{n.ccy}</TableCell>
+                        <TableCell numeric>{n.calculated}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -130,8 +108,8 @@ class Home extends PureComponent {
                 </CardText>
                 <CardActions>
                   <FlatButton
-                    label="go previous"
-                    onTouchTap={this.goPreviousRoute}
+                    label="Export To Csv"
+                    onTouchTap={this.exportToCsv}
                   />
                 </CardActions>
               </Card>
@@ -146,9 +124,39 @@ class Home extends PureComponent {
     this.setState({viewEnters: true});
   }
 
-  goPreviousRoute = () => {
-    const { history } = this.props;
-    history.goBack();
+  exportToCsv = () => {
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    function ConvertToCSV(objArray) {
+      var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+      var str = '';
+
+      for (var i = 0; i < array.length; i++) {
+          var line = '';
+          for (var index in array[i]) {
+              if (line != '') line += ','
+
+              line += array[i][index];
+          }
+
+          str += line + '\r\n';
+      }
+
+      return str;
+    }
+
+    csvContent += ConvertToCSV(this.state.positions);
+
+
+
+    let encodedUri = encodeURI(csvContent);
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "my_data.csv");
+    link.innerHTML= "Click Here to download";
+    document.body.appendChild(link); // Required for FF
+
+    link.click(); // This will download the data file named "my_data.csv"
   }
 }
 
